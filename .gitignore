@@ -4,3 +4,5 @@ data/orderbook.csv
 *.out
 .venv/
 venv/
+writeup.aux
+writeup.log
