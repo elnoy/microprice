@@ -58,6 +58,7 @@ Evaluated on 599 BTC/USDT order book snapshots (1-second polling,
 The microprice correctly predicts the direction of the next 1-second 
 price move 72% of the time. The order book imbalance is a strong short-term signal for price 
 direction in a liquid market.
+
 ---
 
 ## Reference
