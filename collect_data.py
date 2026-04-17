@@ -5,9 +5,7 @@ Polls the Binance public REST API for BTC/USDT order book snapshots
 and saves the result to data/orderbook.csv.
 
 Usage:
-    python collect_data.py              # runs for 5 minutes (default)
     python collect_data.py --minutes 10
-    python collect_data.py --minutes 2 --out data/test.csv
 
 No API key required.
 """
@@ -26,11 +24,7 @@ DEPTH_LIMIT     = 5       # only need best bid/ask, 5 is the minimum valid value
 
 
 def fetch_best_bid_ask() -> dict | None:
-    """
-    Fetch the top-of-book bid and ask from Binance.
-    Returns a dict with keys: timestamp, bid_price, bid_vol, ask_price, ask_vol.
-    Returns None on any network error.
-    """
+
     try:
         r = requests.get(BINANCE_URL, params={"symbol": SYMBOL, "limit": DEPTH_LIMIT}, timeout=5)
         r.raise_for_status()

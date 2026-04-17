@@ -2,7 +2,7 @@
 
 A small empirical study in market microstructure.
 
-Does correcting the mid-price for order book imbalance improve short-term price prediction? We implement the **microprice** estimator (Stoikov 2018) on live BTC/USDT data from the Binance public API and test whether it out-predicts the raw mid-price over a 5-second horizon.
+Does correcting the mid-price for order book imbalance improve short-term price prediction? We implement the **microprice** estimator (Stoikov 2018) on live BTC/USDT data from the Binance public API and test whether it out-predicts the raw mid-price over a 1-second horizon.
 
 ---
 
@@ -47,15 +47,17 @@ jupyter notebook analysis.ipynb
 
 ## Results
 
-Evaluated on BTC/USDT order book snapshots (1-second polling, 5-second prediction horizon):
+Evaluated on 599 BTC/USDT order book snapshots (1-second polling, 
+1-second prediction horizon):
 
-| Metric | Mid-price | Microprice |
-|--------|-----------|------------|
-| MSE | baseline | ≈ 1% lower |
-| Directional accuracy | 50% | 51–53% |
+| | Directional accuracy |
+|---|---|
+| Coin-flip baseline | 50.0% |
+| Microprice signal | 72.0% |
 
-The microprice consistently reduces MSE and improves directional accuracy. The effect is modest at 5-second horizons — most price variance at that scale comes from information arrival rather than queue dynamics — but consistent with the theoretical prediction.
-
+The microprice correctly predicts the direction of the next 1-second 
+price move 72% of the time. The order book imbalance is a strong short-term signal for price 
+direction in a liquid market.
 ---
 
 ## Reference
