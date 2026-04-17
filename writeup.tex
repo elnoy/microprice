@@ -10,7 +10,7 @@
 
 \geometry{margin=2.5cm}
 
-\title{\textbf{Microprice vs Mid-price: \\[4pt]
+\title{\textbf{Microprice vs Mid-price:
 Does Order Book Imbalance Predict Short-Term Price Moves?}}
 \author{Elnoy Greenenko}
 \date{April 2026}
@@ -23,53 +23,33 @@ We implement the microprice estimator of Stoikov~\cite{stoikov2018} on live
 BTC/USDT order book data from the Binance public API and test whether it
 out-predicts the raw mid-price over a 1-second horizon. The microprice adjusts
 the mid-price by the order book imbalance at the best bid and ask, shifting
-toward the ask when bid-side volume dominates. Over 599 observations collected
-at 1-second intervals, the microprice achieves 72\% directional accuracy
-against a 50\% coin-flip baseline, confirming that order book imbalance is a
-strong short-term predictor of price direction in a liquid market.
+toward the ask when bid-side volume dominates.
 \end{abstract}
 
 \section{Introduction}
 
-The mid-price $P^{\text{mid}} = (a + b)/2$ is the standard reference price in
-market microstructure, defined as the average of the best ask $a$ and best bid
-$b$. It is symmetric by construction: it ignores the relative size of the
-resting queues on each side of the book. If there is substantially more resting
-buy interest than sell interest, the mid-price understates the true equilibrium
-price — the market is more likely to move upward.
-
-The \emph{microprice}, introduced by Stoikov~\cite{stoikov2018}, addresses this
-by weighting each price by the opposite side's volume:
+The mid-price $P^{\text{mid}} = (a + b)/2$ ignores the relative size of the
+resting queues on each side of the book. The \emph{microprice}, introduced by
+Stoikov~\cite{stoikov2018}, corrects for this by weighting each price by the
+opposite side's volume:
 \[
-P^* = \frac{a V_b + b V_a}{V_a + V_b}.
+P^* = \frac{a V_b + b V_a}{V_a + V_b} = P^{\text{mid}} + \frac{s}{2} \cdot I,
 \]
-This is equivalent to
-\[
-P^* = P^{\text{mid}} + \frac{s}{2} \cdot I,
-\]
-where $s = a - b$ is the bid-ask spread and
-$I = (V_b - V_a)/(V_b + V_a) \in [-1, 1]$ is the \emph{order book imbalance}.
-When $I > 0$ (more volume on the bid), $P^* > P^{\text{mid}}$; when $I < 0$,
-$P^* < P^{\text{mid}}$.
-
-The central empirical question is: over a 1-second horizon, does the sign of
-$(P^* - P^{\text{mid}})$ correctly predict the direction of the next mid-price
-move?
+where $s = a - b$ is the spread and $I = (V_b - V_a)/(V_b + V_a) \in [-1, 1]$
+is the order book imbalance. When $I > 0$, the bid queue dominates and
+$P^* > P^{\text{mid}}$, reflecting upward price pressure.
+The central empirical question is: does the sign of $(P^* - P^{\text{mid}})$
+correctly predict the direction of the next mid-price move?
 
 \section{Data}
 
-We collect top-of-book snapshots from the Binance public REST API endpoint
-\texttt{/api/v3/depth?symbol=BTCUSDT\&limit=5} at 1-second intervals, requiring
-no API key. Each snapshot records the best bid price $b$ and volume $V_b$, the
-best ask price $a$ and volume $V_a$, and a UTC timestamp. The collection window
-covers approximately 10 minutes, yielding 599 usable observations after
-applying the forward shift for the prediction target.
-
-Table~\ref{tab:summary} summarises the two key derived quantities. The mean
-imbalance of 0.21 is positive, reflecting the upward-trending conditions during
-the collection window. The mean spread of \$0.01 on a $\sim$\$78,000 asset
-confirms the market is highly liquid — a necessary condition for the imbalance
-signal to reflect genuine order flow rather than noise.
+We collect 599 top-of-book snapshots from the Binance public REST API
+at 1-second intervals, no API key required, using the endpoint
+\texttt{/api/v3/depth} with parameters \texttt{symbol=BTCUSDT\&limit=5}. Each snapshot records the best bid and ask prices
+and volumes. Table~\ref{tab:summary} summarises the key derived quantities.
+The mean imbalance of 0.21 reflects upward-trending conditions during
+collection; the mean spread of \$0.01 on a $\sim$\$78,000 asset confirms
+the market is highly liquid.
 
 \begin{table}[H]
 \centering
@@ -83,7 +63,7 @@ Min    & $-1.00$ & 0.0100 \\
 Max    & $1.00$  & 0.1400 \\
 \bottomrule
 \end{tabular}
-\caption{Summary statistics for order book imbalance and spread,
+\caption{Statistics for order book imbalance and spread,
 BTC/USDT, 599 observations.}
 \label{tab:summary}
 \end{table}
@@ -101,12 +81,13 @@ I_t = \frac{V_{b,t} - V_{a,t}}{V_{b,t} + V_{a,t}}.
 
 \subsection{Prediction target and evaluation}
 
-We define the prediction horizon as $h = 1$ row (1 second). The classification
+We define the prediction horizon as $h = 1$ row. The classification
 target is $\operatorname{sign}(\Delta P_{t+1})$, where
-$\Delta P_{t+1} = P^{\text{mid}}_{t+1} - P^{\text{mid}}_t$.
-
-The microprice signals \emph{up} when $P^*_t > P^{\text{mid}}_t$, equivalently
-when $I_t > 0$. We evaluate \textbf{directional accuracy}: the fraction of
+\[
+\Delta P_{t+1} = P^{\text{mid}}_{t+1} - P^{\text{mid}}_t.
+\]
+The microprice signals up when $P^*_t > P^{\text{mid}}_t$, i.e
+when $I_t > 0$. We evaluate directional accuracy: the fraction of
 non-zero moves for which $\operatorname{sign}(P^*_t - P^{\text{mid}}_t) =
 \operatorname{sign}(\Delta P_{t+1})$. Rows with $\Delta P_{t+1} = 0$ are
 excluded as they carry no directional information.
@@ -127,15 +108,13 @@ Coin-flip baseline & 50.0\% \\
 Microprice signal  & 72.0\% \\
 \bottomrule
 \end{tabular}
-\caption{Directional accuracy over a 1-second horizon, BTC/USDT,
-403 non-zero moves from 599 observations.}
+\caption{Directional accuracy over a 1-second horizon, BTC/USDT
+on non-zero moves}
 \label{tab:results}
 \end{table}
 
 Figure~\ref{fig:scatter} shows the relationship between imbalance and future
-mid-price change. The bin-mean curve has a clear positive slope — on average, a
-more positive imbalance is associated with a larger subsequent upward move —
-consistent with the microprice being informative about future price direction.
+mid-price change. The bin-mean curve has a clear positive slope, so on average a more positive imbalance is associated with a larger subsequent upward move, thus we have evidence for the microprice being informative about future price direction.
 
 \begin{figure}[H]
 \centering
@@ -148,22 +127,25 @@ each imbalance bin.}
 
 \section{Discussion}
 
-\textbf{Why does the signal work?} When $V_b > V_a$, resting buy interest
-exceeds sell interest. Market orders arriving on the ask side consume the
-resting bids, pushing the price upward. The microprice encodes this: it shifts
-toward the ask in proportion to the imbalance, anticipating the direction of
-the move before it happens.
+When $V_b > V_a$, resting buy interest exceeds sell interest. Market orders
+arriving on the ask side consume the resting bids, pushing the price upward.
+The microprice encodes this directly: it shifts toward the ask in proportion
+to the imbalance, anticipating the direction of the move before it happens.
 
-\textbf{Why directional accuracy?} The microprice correction is on the order of
-\$1--2 at any given moment. Over a 1-second horizon the price can move
-substantially during a volatile period. Directional accuracy isolates the
-signal from the noise — it asks only whether the microprice knew which way the
-price was going, not how far.
+\vspace{3mm}
 
-\textbf{Connection to fragmented liquidity.} In a fragmented market, each venue
-contributes its own imbalance signal. The aggregated microprice is a
-volume-weighted consensus of venue-level signals — the core problem in smart
-order routing and liquidity aggregation across fragmented FX pools.
+The microprice correction is on the order of \$1--2 at any given moment, small
+relative to the magnitude of price moves over even a 1-second horizon during
+volatile conditions. Directional accuracy is therefore the natural evaluation
+metric, it asks only whether the microprice correctly identified which way the
+price was going, not how far, isolating the signal from the noise.
+
+\vspace{3mm}
+
+In a fragmented market, each venue contributes its own imbalance signal. The
+aggregated microprice generalises naturally to this setting as a volume-weighted
+consensus of venue-level signals, which is the core problem in smart order
+routing and liquidity aggregation across fragmented liquidity pools.
 
 \section{Conclusion}
 
