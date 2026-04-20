@@ -19,7 +19,7 @@ Does Order Book Imbalance Predict Short-Term Price Moves?}}
 \maketitle
 
 \begin{abstract}
-We implement the microprice estimator of Stoikov~\cite{stoikov2018} on live BTC/USDT order book data from the Binance public API and test whether it out-predicts the raw mid-price over a 1-second horizon. The microprice adjusts the mid-price by the order book imbalance at the best bid and ask, shifting toward the ask when bid-side volume dominates. Over 1797 observations collected at 1-second intervals, the microprice achieves 83\% directional accuracy against a 50\% coin-flip baseline.
+We implement the microprice estimator of Stoikov~\cite{stoikov2018} on live BTC/USDT order book data from the Binance public API and test whether it out-predicts the raw mid-price over a 1-second horizon. The microprice adjusts the mid-price by the order book imbalance at the best bid and ask, shifting toward whichever side of the book has less volume. Over 1797 observations collected at 1-second intervals, the microprice achieves 83\% directional accuracy against a 50\% coin-flip baseline.
 \end{abstract}
 
 \section{Introduction}
@@ -33,7 +33,7 @@ correctly predict the direction of the next mid-price move?
 
 \section{Data}
 
-We collect 1797 top-of-book snapshots from the Binance public REST API at 1-second intervals, no API key required, using the endpoint \texttt{/api/v3/depth} with parameters \texttt{symbol=BTCUSDT\&limit=5}. Each snapshot records the best bid and ask prices and volumes. Table~\ref{tab:summary} summarises the key derived quantities. The mean imbalance of 0.21 reflects upward-trending conditions during collection; the mean spread of \$0.01 on a $\sim$\$78,000 asset confirms the market is highly liquid.
+We collect 1797 top-of-book snapshots from the Binance public REST API at 1-second intervals, no API key required, using the endpoint \texttt{/api/v3/depth} with parameters \texttt{symbol=BTCUSDT\&limit=5}. Each snapshot records the best bid and ask prices and volumes. Table~\ref{tab:summary} summarises the key derived quantities. The mean imbalance of -0.17 reflects downward-trending conditions during collection; the mean spread of \$0.01 on a $\sim$\$78,000 asset confirms the market is highly liquid.
 
 \begin{table}[H]
 \centering
@@ -41,10 +41,10 @@ We collect 1797 top-of-book snapshots from the Binance public REST API at 1-seco
 \toprule
  & Imbalance $I$ & Spread $s$ (USDT) \\
 \midrule
-Mean   & 0.21  & 0.0103 \\
-Std    & 0.64  & 0.0054 \\
+Mean   & $-0.17$ & 0.0100 \\
+Std    & 0.64    & 0.0050 \\
 Min    & $-1.00$ & 0.0100 \\
-Max    & $1.00$  & 0.1400 \\
+Max    & $1.00$  & 0.0100 \\
 \bottomrule
 \end{tabular}
 \caption{Statistics for order book imbalance and spread,
