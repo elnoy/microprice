@@ -47,16 +47,16 @@ jupyter notebook analysis.ipynb
 
 ## Results
 
-Evaluated on 599 BTC/USDT order book snapshots (1-second polling, 
+Evaluated on 1797 BTC/USDT order book snapshots (1-second polling, 
 1-second prediction horizon):
 
 | | Directional accuracy |
-|---|---|
-| Coin-flip baseline | 50.0% |
-| Microprice signal | 72.0% |
+|---|----------------------|
+| Coin-flip baseline | 50.0%                |
+| Microprice signal | 83.0%                |
 
 The microprice correctly predicts the direction of the next 1-second 
-price move 72% of the time. The order book imbalance is a strong short-term signal for price 
+price move 83% of the time. The order book imbalance is a strong short-term signal for price 
 direction in a liquid market.
 
 ---
